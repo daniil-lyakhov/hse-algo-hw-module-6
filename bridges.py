@@ -186,13 +186,16 @@ def test_simple():
 
 
 def test():
-    edges, nodes_count = get_random_simple_Gnp_graph_edges(50, 100, 0)
+    edges, nodes_count, graph = get_random_simple_Gnp_graph_edges(9, 20, 0)
     matrix = assemble_matrix(edges, nodes_count)
     print(matrix)
     for _ in range(50):
         res = binary_gauss(matrix.copy())
         res = sample_solutions(*res)
         print('*'*100)
+        if not (matrix.dot(res) % 2).any():
+            print('OK')
+            continue
         print(res)
         print(matrix.dot(res) % 2)
     a = 6

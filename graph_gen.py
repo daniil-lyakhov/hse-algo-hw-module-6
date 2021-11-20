@@ -16,7 +16,7 @@ def get_random_simple_Gnp_graph_edges(n, m, seed):
   seed = 43
   g = nx.random_graphs.fast_gnp_random_graph(n,edge_p,seed)
 
-  return g.edges, len(g)
+  return g.edges, len(g), g
 
 
 
