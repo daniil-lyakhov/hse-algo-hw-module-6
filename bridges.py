@@ -95,51 +95,25 @@ def binary_gauss(A):
     n = A.shape[0]
     order = np.arange(A.shape[1])
 
-    stop_inters = False
     for i in range(0, n):
 
-
         # Search for maximum in this column
-        while True:
-            max_column = -1
-            for k in range(i, A.shape[1]):
-                if A[i][k] == 1:
-                    max_column = k
-                    break
-
-            # In case not all rows are zero
-            if max_column != -1:
-                # Go next
-                break
-            # Find non zero row
-            non_zero_row_idx = -1
-            for m in range(n-1, i, -1):
-                if A[m, :].any():
-                    non_zero_row_idx = m
-                    break
-            # If all rows zeros
-            # stop iterations
-            if non_zero_row_idx == -1:
-                stop_inters = True
-                break
-            # Else swap rows and
-            # repeat iter
-            tmp = A[i, :].copy()
-            A[i, :] = A[non_zero_row_idx, :].copy()
-            A[non_zero_row_idx, :] = tmp
-            # Break infinite loop
-            if not A[i, :].any():
+        max_row = -1
+        for k in range(i, A.shape[0]):
+            if A[k][i] == 1:
+                max_row = k
                 break
 
-        if stop_inters:
-            break
+        # In case no non zero element in row
+        # skip iter
+        if max_row == -1:
+            continue
 
         # Swap maximum row with current row (column by column)
-        if max_column != i:
-            tmp = A[:, i].copy()
-            A[:, i] = A[:, max_column].copy()
-            A[:, max_column] = tmp
-            order[i], order[max_column] = order[max_column], order[i]
+        if max_row != i:
+            tmp = A[i, :].copy()
+            A[i, :] = A[max_row, :].copy()
+            A[max_row, :] = tmp
 
         # Make all rows below this one 0 in current column
         for k in range(i + 1, n):
@@ -152,10 +126,10 @@ def binary_gauss(A):
             range_ = k + 1
             break
 
-    return A, range_, order
+    return A, range_#, order
 
 
-def sample_solutions(A, range_, order):
+def sample_solutions(A, range_):
     #sample = np.random.randint(-2**31, 2**31-1, size=(A.shape[0],))
     #sample = np.random.randint(0, 2, size=(A.shape[0],))
     sample = np.zeros(A.shape[1], dtype=np.int8)
@@ -163,9 +137,9 @@ def sample_solutions(A, range_, order):
     sample[-free_vars:] = np.random.randint(0, 2, size=(free_vars,), dtype=np.uint64)
     for i in range(range_ - 1, -1, -1):
         #sample[i] = sample.dot(A[i, :])
-        sample[i] = np.bitwise_xor.reduce(sample & A[i, :])
+        sample[i] = ((np.bitwise_xor.reduce(sample & A[i, :]) ^ A[i][i]) + 1) % 2
 
-    return sample.take(order, axis=0)
+    return sample
 
 
 def compute_2bridges_rand(*args):
@@ -186,7 +160,7 @@ def test_simple():
 
 
 def test():
-    edges, nodes_count, graph = get_random_simple_Gnp_graph_edges(9, 20, 0)
+    edges, nodes_count, graph = get_random_simple_Gnp_graph_edges(8, 20, 0)
     matrix = assemble_matrix(edges, nodes_count)
     print(matrix)
     for _ in range(50):
@@ -201,4 +175,4 @@ def test():
     a = 6
 
 if __name__ == '__main__':
-    test()
+    test_simple()
