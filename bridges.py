@@ -5,6 +5,7 @@ import networkx as nx
 
 from graph_gen import (
     get_random_simple_Gnp_graph,
+    get_random_simple_Gnp_graph_edges,
     get_random_Gnp_digraph,
     get_Euler_digraph,
     get_random_Gnm_digraph,
@@ -52,8 +53,8 @@ def compute_bridges_determ(adj_list):
     return bridges
 
 
-def assemble_matrix(edges: List[Tuple[int, int]], verts_len: int ) -> np.array:
-    matrix = np.zeros((verts_len, len(edges)))
+def assemble_matrix(edges: List[Tuple[int, int]], verts_len: int) -> np.array:
+    matrix = np.zeros((verts_len, len(edges)), dtype=np.int8)
     for idx, edge in enumerate(edges):
         matrix[edge[0]][idx] = matrix[edge[1]][idx] = 1
     return matrix
@@ -94,27 +95,49 @@ def binary_gauss(A):
     n = A.shape[0]
     order = np.arange(A.shape[1])
 
+    stop_inters = False
     for i in range(0, n):
+
+
         # Search for maximum in this column
-        max_column = -1
-        for k in range(i, n):
-            if A[i][k] == 1:
-                max_column = k
+        while True:
+            max_column = -1
+            for k in range(i, A.shape[1]):
+                if A[i][k] == 1:
+                    max_column = k
+                    break
+
+            # In case not all rows are zero
+            if max_column != -1:
+                # Go next
+                break
+            # Find non zero row
+            non_zero_row_idx = -1
+            for m in range(n-1, i, -1):
+                if A[m, :].any():
+                    non_zero_row_idx = m
+                    break
+            # If all rows zeros
+            # stop iterations
+            if non_zero_row_idx == -1:
+                stop_inters = True
+                break
+            # Else swap rows and
+            # repeat iter
+            tmp = A[i, :].copy()
+            A[i, :] = A[non_zero_row_idx, :].copy()
+            A[non_zero_row_idx, :] = tmp
+            # Break infinite loop
+            if not A[i, :].any():
                 break
 
-        # In case maximum column value is zero
-        if max_column == -1:
-            # Swap row
-            tmp = A[i, :].copy()
-            A[i, :] = A[-1, :]
-            A[-1, :] = tmp
-            # Skip iter
-            continue
+        if stop_inters:
+            break
 
         # Swap maximum row with current row (column by column)
         if max_column != i:
             tmp = A[:, i].copy()
-            A[:, i] = A[:, max_column]
+            A[:, i] = A[:, max_column].copy()
             A[:, max_column] = tmp
             order[i], order[max_column] = order[max_column], order[i]
 
@@ -148,7 +171,7 @@ def sample_solutions(A, range_, order):
 def compute_2bridges_rand(*args):
    pass
 
-def test():
+def test_simple():
     a = np.array([[1, 1, 0, 0, 0, 0],
                   [1, 0, 0, 1, 0, 1],
                   [0, 0, 0, 1, 1, 0],
@@ -160,6 +183,19 @@ def test():
         print('*'* 10)
         print(res)
         print(a @ res % 2)
+
+
+def test():
+    edges, nodes_count = get_random_simple_Gnp_graph_edges(50, 100, 0)
+    matrix = assemble_matrix(edges, nodes_count)
+    print(matrix)
+    for _ in range(50):
+        res = binary_gauss(matrix.copy())
+        res = sample_solutions(*res)
+        print('*'*100)
+        print(res)
+        print(matrix.dot(res) % 2)
+    a = 6
 
 if __name__ == '__main__':
     test()

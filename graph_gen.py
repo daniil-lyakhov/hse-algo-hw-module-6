@@ -11,6 +11,14 @@ def get_random_simple_Gnp_graph(n, m, seed=42):
 
   return nx.convert.to_dict_of_lists(g)
 
+def get_random_simple_Gnp_graph_edges(n, m, seed):
+  edge_p = 2*m/(n*(n-1))
+  seed = 43
+  g = nx.random_graphs.fast_gnp_random_graph(n,edge_p,seed)
+
+  return g.edges, len(g)
+
+
 
 # функция возвращает случайный ориентированный граф в моделе Gnp
 # вероятность ребра p = m/(n*(n-1)), чтобы среденее число ребер было = m
