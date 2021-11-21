@@ -65,37 +65,19 @@ def assemble_matrix(edges: List[Tuple[int, int]], verts_len: int) -> np.array:
 # список представлен как словарь(хеш-таблица) списков
 # выход представляет собой список ребер, являющихся мостами с большой вероятностью
 def compute_bridges_rand(adj_list: dict):
-    # Compute vertex / edges matrix
-    #edges = set()
-    #for node, childs in adj_list.items():
-    #    for child in childs:
-    #        edges.add(tuple(sorted((node, child))))
-
-    ## Assemble matrix
-    #matrix = assemble_matrix(list(edges), len(adj_list))
     G = nx.Graph(adj_list)
-    bfs_tree_edges = list()
-    visited = set()
-
-    #bfs(0)
-    #other_edges = set([tuple(sorted(edge)) for edge in G.edges]) - set(bfs_tree_edges)
-    #other_edges = list(other_edges)
-    #mask_non_tree = np.random.randint(2, size=len(other_edges), dtype=np.int64)
-    #mask_tree = np.empty((len(bfs_tree_edges),), dtype=np.int64)
-    ## Propagate masks
-    #for in_e, out_e in bfs_tree_edges[::-1]:
-
-
-
-
-
-    #return list(nx.algorithms.bridges(G))
+    edges = G.edges
+    matrix = assemble_matrix(edges, len(G)).astype(np.uint8)
+    _, rank, order = binary_gauss(matrix)
+    solutions = sample_64_bit_solutions(matrix.astype(np.uint64), rank)
+    bridges_idxs = np.where(solutions == 0)
+    bridges = np.array(edges).take(order, axis=0)[bridges_idxs].tolist()
+    return {tuple(x) for x in bridges}
 
 
 def binary_gauss(A):
     n = A.shape[0]
     order = np.arange(A.shape[1])
-    A = np.array(A)
 
     stop_iters = False
     for i in range(0, n):
@@ -153,25 +135,37 @@ def binary_gauss(A):
             rank = k + 1
             break
 
-    return A.view(galois.GF2), rank, order
+    return A, rank, order
 
 
-def sample_solutions(A, range_, order):
+def sample_64_bit_solutions(A, rank):
+    sample = np.zeros(A.shape[1], dtype=np.uint64)
+    A[np.where(A == 1)] = np.iinfo(np.uint64).max
+    free_vars = A.shape[1] - rank
+    if free_vars == 0:
+        return sample
+
+    sample[-free_vars:] = np.random.randint(0, 2**64-1, size=(free_vars,), dtype=np.uint64)
+    for i in range(rank - 1, -1, -1):
+        sample[i] = np.bitwise_xor.reduce(sample & A[i, :])
+
+    return sample
+
+
+def sample_solutions(A, rank):
     #sample = np.random.randint(-2**31, 2**31-1, size=(A.shape[0],))
     #sample = np.random.randint(0, 2, size=(A.shape[0],))
     sample = np.zeros(A.shape[1], dtype=np.int8).view(galois.GF2)
-    free_vars = A.shape[1] - range_
+    free_vars = A.shape[1] - rank
     if free_vars == 0:
         return sample
 
     sample[-free_vars:] = galois.GF2.Random((free_vars,))#np.random.randint(0, 2, size=(free_vars,), dtype=np.uint64)
-    a_to_print = np.array(A)
-    for i in range(range_ - 1, -1, -1):
-        #sample[i] = sample.dot(A[i, :])
+    for i in range(rank - 1, -1, -1):
         sample[i] = ((np.bitwise_xor.reduce(sample & A[i, :]) ^ A[i][i]) + np.array(1).view(galois.GF2))
 
     assert not (A @ sample).any()
-    return sample# sample.take(order, axis=0)
+    return sample
 
 
 def compute_2bridges_rand(*args):

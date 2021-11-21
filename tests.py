@@ -113,7 +113,8 @@ def test_random_bridge_matrix():
 def main():
     #stress_test_bridges_determ(100, 300)
     #stress_test_bridges_rand(100, 300)
-    test_random_bridge_matrix()
+    #test_random_bridge_matrix()
+    stress_test_bridges_rand(200, 100)
 
 
 
