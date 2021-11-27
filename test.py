@@ -1,22 +1,17 @@
-import pytest
 import galois
 import numpy as np
 import networkx as nx
 
 from graph_gen import (
   get_random_simple_Gnp_graph,
-  get_random_Gnp_digraph,
   get_Euler_digraph,
-  get_random_Gnm_digraph,
-  get_random_simple_Gnm_graph,
-  get_hypercube_digraph,
   get_random_simple_Gnp_graph_edges)
 from bridges import (compute_bridges_determ,
                      compute_bridges_rand,
                      compute_2bridges_rand,
                      assemble_matrix,
                      binary_gauss,
-                     sample_solutions)
+                     sample_solution)
 from euler import compute_Euler_circuit_digraph
 
 
@@ -89,8 +84,9 @@ def Euler_circuit_test(G, test_circuit):
 
   return True
 
+
 # max_n должно быть строго больше чем 10
-def stress_test_Euler_circuit_digraph(max_n=20, iterations_num=1000):
+def test_stress_test_Euler_circuit_digraph(max_n=20, iterations_num=1000):
   for iteration in range(iterations_num):
     n = np.random.randint(10, max_n)
     k = np.floor(n/4)
@@ -120,7 +116,7 @@ def test_euler_cycles(n=100, m=200, iterations=10):
         for _ in range(5):
             res = binary_gauss(matrix.copy())
             _, rank, order = res
-            res = sample_solutions(*res[:-1])
+            res = sample_solution(*res[:-1])
             matrix = matrix.take(order, axis=1)
             if not (matrix @ res).any():
                 continue
@@ -139,6 +135,6 @@ def test_euler_simple():
     a = a.view(galois.GF2)
     for _ in range(10):
         diag, rank, order = binary_gauss(a.copy())
-        res = sample_solutions(diag, rank)
+        res = sample_solution(diag, rank)
         check = a.take(order) @ res
         assert not check.any()

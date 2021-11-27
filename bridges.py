@@ -1,17 +1,8 @@
 from typing import List, Tuple, Callable
 
 import numpy as np
-import galois
 import networkx as nx
-
-from graph_gen import (
-    get_random_simple_Gnp_graph,
-    get_random_simple_Gnp_graph_edges,
-    get_random_Gnp_digraph,
-    get_Euler_digraph,
-    get_random_Gnm_digraph,
-    get_random_simple_Gnm_graph,
-    get_hypercube_digraph)
+import galois
 
 
 # детерминированный алгоритм для поиска мостов
@@ -161,7 +152,7 @@ def sample_64_bit_solutions(A, rank):
     return sample
 
 
-def sample_solutions(A, rank):
+def sample_solution(A, rank):
     sample = np.zeros(A.shape[1], dtype=np.int8).view(galois.GF2)
     free_vars = A.shape[1] - rank
     if free_vars == 0:
