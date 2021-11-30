@@ -1,16 +1,24 @@
 import networkx as nx
+from collections import deque
 
 
 def compute_Euler_circuit_digraph(adj_list):
     G = nx.DiGraph(adj_list)
     visited = set()
     path = []
-    def edge_dfs(edge, parent=-1):
+
+    stack = deque()
+    stack.append(list(G.edges)[0])
+    while stack:
+        edge = stack[-1]
+        if edge in visited:
+            stack.pop()
+            path.append(edge)
+            continue
+
         visited.add(edge)
         for neighbor_edge in G.edges(edge[1]):
             if neighbor_edge not in visited:
-                edge_dfs(neighbor_edge, edge)
-        path.append(edge)
+                stack.append(neighbor_edge)
 
-    edge_dfs(list(G.edges)[0])
     return path[::-1]

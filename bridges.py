@@ -40,11 +40,47 @@ def compute_bridges_determ(adj_list):
     return bridges
 
 
+def compute_bridges_rand(adj_list: dict):
+    visited = set()
+    sample = dict()
+
+    def set_sample(u, v, val):
+       sample[(min(u, v), max(u, v))] = val
+
+    def in_sample(u, v):
+        return (min(u, v), max(u, v)) in sample
+
+    def get_sample(u, v):
+        return sample[(min(u, v), max(u, v))]
+
+    def dfs(v, parent=-1):
+        visited.add(v)
+        if parent >= 0:
+            set_sample(parent, v, np.zeros(None, dtype=np.uint64))
+
+        for child in adj_list[v]:
+            if child == parent:
+                continue
+            if child in visited:
+                if not in_sample(v, child):
+                    set_sample(v, child, np.random.randint(0, 2**64 -1, dtype=np.uint64))
+            else:
+                dfs(child, v)
+            if parent >= 0:
+                set_sample(parent, v, get_sample(parent, v) ^ get_sample(v, child))
+
+    for v in adj_list:
+        if v not in visited:
+            dfs(v)
+
+    return [edge for edge, sample in sample.items() if sample == 0]
+
+
 # рандомизированный алгоритм для поиска мостов
 # на вход поступает граф представленный списком смежности
 # список представлен как словарь(хеш-таблица) списков
 # выход представляет собой список ребер, являющихся мостами с большой вероятностью
-def compute_bridges_rand(adj_list: dict):
+def compute_bridges_rand_naive(adj_list: dict):
     G = nx.Graph(adj_list)
     edges = G.edges
     matrix = assemble_matrix(edges, len(G)).astype(np.uint8)
@@ -55,7 +91,7 @@ def compute_bridges_rand(adj_list: dict):
     return {tuple(x) for x in bridges}
 
 
-def compute_2bridges_rand(adj_list: dict, argsort: Callable):
+def compute_2bridges_rand_naive(adj_list: dict, argsort: Callable):
     G = nx.Graph(adj_list)
     edges = G.edges
     matrix = assemble_matrix(edges, len(G)).astype(np.uint8)

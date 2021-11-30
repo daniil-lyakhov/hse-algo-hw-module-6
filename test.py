@@ -5,10 +5,11 @@ import networkx as nx
 from graph_gen import (
   get_random_simple_Gnp_graph,
   get_Euler_digraph,
-  get_random_simple_Gnp_graph_edges)
+  get_random_simple_Gnp_graph_edges,
+  get_hypercube_digraph)
 from bridges import (compute_bridges_determ,
                      compute_bridges_rand,
-                     compute_2bridges_rand,
+                     compute_2bridges_rand_naive,
                      assemble_matrix,
                      binary_gauss,
                      sample_solution)
@@ -27,7 +28,7 @@ def test_stress_test_bridges_determ(n=100, m=300, iterations_num=1000):
   print(f"Стресс тест для детерминированного поиска мостов пройден!, n: {n}, m: {m}, iterations_num: {iterations_num}")
 
 
-def test_stress_test_bridges_rand(n=200, m=100, iterations_num=1000):
+def test_stress_test_bridges_rand(n=100, m=200, iterations_num=1000):
   exp_err = m * (1/ (2**64))
   for i in range(iterations_num):
     G = get_random_simple_Gnp_graph(n, m, i)
@@ -86,7 +87,7 @@ def Euler_circuit_test(G, test_circuit):
 
 
 # max_n должно быть строго больше чем 10
-def test_stress_test_Euler_circuit_digraph(max_n=20, iterations_num=1000):
+def test_stress_test_Euler_circuit_digraph(max_n=50, iterations_num=1000):
   for iteration in range(iterations_num):
     n = np.random.randint(10, max_n)
     k = np.floor(n/4)
@@ -95,6 +96,14 @@ def test_stress_test_Euler_circuit_digraph(max_n=20, iterations_num=1000):
     if not Euler_circuit_test(G, test_circuit):
       raise Exception(f"Неправильный Эйлеров обход, функция генерации: get_Euler_digraph, n: {n}, k: {k}")
   print(f"Стресс тест для ориентированных Эйлеровых циклов пройден, max_n: {max_n}, iterations_num: {iterations_num}")
+
+
+def test_euler_circuit_unit_tests():
+  dims = [1, 2, 3, 4, 5, 6]
+  for dim in dims:
+    G = get_hypercube_digraph(dim)
+    test_circuit = compute_Euler_circuit_digraph(G)
+    assert(Euler_circuit_test(G,test_circuit))
 
 
 def test_random_bridge_matrix_matrix_assemble():
@@ -138,3 +147,10 @@ def test_euler_simple():
         res = sample_solution(diag, rank)
         check = a.take(order) @ res
         assert not check.any()
+
+def test_random_bridges_simple():
+    pass
+    #test_edges = {0: [1, 4], 1: [0](3, 4), (1, 2), (2, 3), (1, 3))
+    #test_edges = nx.convert.to_dict_of_lists(test_edges)
+    #res = compute_bridges_rand(test_edges)
+    #print(res)
