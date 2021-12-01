@@ -9,7 +9,7 @@ from graph_gen import (
   get_hypercube_digraph)
 from bridges import (compute_bridges_determ,
                      compute_bridges_rand,
-                     compute_2bridges_rand_naive,
+                     compute_2bridges_rand,
                      assemble_matrix,
                      binary_gauss,
                      sample_solution)

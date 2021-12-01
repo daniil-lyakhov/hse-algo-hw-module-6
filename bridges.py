@@ -40,12 +40,12 @@ def compute_bridges_determ(adj_list):
     return bridges
 
 
-def compute_bridges_rand(adj_list: dict):
+def sample_euler_circuits(adj_list: dict):
     visited = set()
     sample = dict()
 
     def set_sample(u, v, val):
-       sample[(min(u, v), max(u, v))] = val
+        sample[(min(u, v), max(u, v))] = val
 
     def in_sample(u, v):
         return (min(u, v), max(u, v)) in sample
@@ -73,7 +73,23 @@ def compute_bridges_rand(adj_list: dict):
         if v not in visited:
             dfs(v)
 
+    return sample
+
+
+def compute_bridges_rand(adj_list: dict):
+    sample = sample_euler_circuits(adj_list)
     return [edge for edge, sample in sample.items() if sample == 0]
+
+
+def compute_2bridges_rand(adj_list: dict, argsort: Callable):
+    sample = sample_euler_circuits(adj_list)
+    sample = list(sample.items())
+    sort_idxs = argsort([elem[1] for elem in sample])
+    res = []
+    for prev, next in zip(sort_idxs[:-1], sort_idxs[1:]):
+        if sample[prev][1] == sample[next][1]:
+            res.append(list(map(tuple, (sample[prev][0], sample[next][0]))))
+    return res
 
 
 # рандомизированный алгоритм для поиска мостов
