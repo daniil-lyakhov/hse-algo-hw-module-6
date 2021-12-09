@@ -87,9 +87,9 @@ def Euler_circuit_test(G, test_circuit):
 
 
 # max_n должно быть строго больше чем 10
-def test_stress_test_Euler_circuit_digraph(max_n=50, iterations_num=1000):
+def test_stress_test_Euler_circuit_digraph(max_n=100, iterations_num=1000):
   for iteration in range(iterations_num):
-    n = np.random.randint(10, max_n)
+    n = np.random.randint(50, max_n)
     k = np.floor(n/4)
     G = get_Euler_digraph(n,k)
     test_circuit = compute_Euler_circuit_digraph(G)
